@@ -1,0 +1,17 @@
+{
+  "appId": "org.eedsc.lecturequotidienne",
+  "appName": "Lecture Quotidienne EEDSC",
+  "webDir": "out",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "http://localhost:3001",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true,
+    "backgroundColor": "#060E1E"
+  },
+  "ios": {
+    "backgroundColor": "#060E1E"
+  }
+}

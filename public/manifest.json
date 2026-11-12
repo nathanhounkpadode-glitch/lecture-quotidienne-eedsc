@@ -1,0 +1,51 @@
+{
+  "name": "Lecture Quotidienne EEDSC",
+  "short_name": "EEDSC Bible",
+  "description": "Portion biblique quotidienne, méditation et prière de l'Église Évangélique de la Délivrance et du Salut en Christ (Cotonou, Bénin)",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#060E1E",
+  "theme_color": "#0E234B",
+  "lang": "fr",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/logo_eedsc.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo_eedsc.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "lifestyle", "books"],
+  "shortcuts": [
+    {
+      "name": "Portion du Jour",
+      "short_name": "Aujourd'hui",
+      "description": "Lire les portions de méditation du jour",
+      "url": "/#today",
+      "icons": [{ "src": "/logo_eedsc.jpg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Bible Enfants",
+      "short_name": "Enfants",
+      "description": "Histoires bibliques et dessins animés pour enfants",
+      "url": "/#kids",
+      "icons": [{ "src": "/logo_eedsc.jpg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Mur de Prière",
+      "short_name": "Prières",
+      "description": "Déposer une requête et prier pour les frères et sœurs",
+      "url": "/#prayers",
+      "icons": [{ "src": "/logo_eedsc.jpg", "sizes": "96x96" }]
+    }
+  ]
+}
