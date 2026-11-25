@@ -121,9 +121,19 @@ export default function BibleReaderModal({
                 <span className="text-[10px] font-bold text-slate-300 bg-slate-800 px-2.5 py-0.5 rounded-full border border-slate-700">
                   Étape {passageIndex + 1} sur {passagesList.length}
                 </span>
-                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">
-                  <Headphones className="w-2.5 h-2.5" /> Audio Disponible
-                </span>
+                {selectedLang === "fr" ? (
+                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                    <Headphones className="w-2.5 h-2.5" /> Audio Studio HD
+                  </span>
+                ) : selectedLang === "en" ? (
+                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/30">
+                    <Headphones className="w-2.5 h-2.5" /> Audio English
+                  </span>
+                ) : (
+                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/30">
+                    <Headphones className="w-2.5 h-2.5" /> Audio en préparation
+                  </span>
+                )}
               </div>
               <h2 className="text-xl md:text-2xl font-bold text-white font-serif mt-1">
                 {currentPassage.reference}
@@ -199,6 +209,7 @@ export default function BibleReaderModal({
               chapterRef={currentPassage.reference}
               selectedLang={selectedLang}
               langName={currentTranslation.langName}
+              onSelectLang={(l) => setSelectedLang(l)}
             />
           </div>
 
@@ -212,7 +223,7 @@ export default function BibleReaderModal({
             <div className="p-3.5 bg-amber-500/10 border border-amber-400/30 rounded-2xl flex items-center gap-2.5 text-xs text-amber-300">
               <Headphones className="w-4 h-4 shrink-0" />
               <span>
-                <strong>Version Audio {currentTranslation.langName} :</strong> Écoutez les passages clés de ce chapitre dans votre langue maternelle.
+                <strong>Texte intégral en {currentTranslation.langName} :</strong> Tous les versets de ce chapitre sont fidèlement disponibles ci-dessous. Les fichiers audios studio sont en préparation par l'église.
               </span>
             </div>
           )}

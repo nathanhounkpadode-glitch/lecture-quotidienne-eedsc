@@ -8,9 +8,10 @@ interface AudioPlayerBarProps {
   chapterRef: string;
   selectedLang: SupportedLang;
   langName: string;
+  onSelectLang?: (lang: SupportedLang) => void;
 }
 
-const MP3_MAP: Record<string, string> = {
+const MP3_MAP_FR: Record<string, string> = {
   "Genèse 1": "/audio_genese_1_fr.mp3",
   "Genèse 2": "/audio_genese_2_fr.mp3",
   "Genèse 3": "/audio_genese_3_fr.mp3",
@@ -18,7 +19,12 @@ const MP3_MAP: Record<string, string> = {
   "Jean 8": "/audio_jean_8_fr.mp3",
 };
 
-export default function AudioPlayerBar({ chapterRef, selectedLang, langName }: AudioPlayerBarProps) {
+export default function AudioPlayerBar({
+  chapterRef,
+  selectedLang,
+  langName,
+  onSelectLang,
+}: AudioPlayerBarProps) {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(120);
@@ -28,27 +34,98 @@ export default function AudioPlayerBar({ chapterRef, selectedLang, langName }: A
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Pick audio file
-  const audioSrc = MP3_MAP[chapterRef] || "/audio_jean8_36_fr.mp3";
+  // Determine available audio source based on language and chapter
+  const hasStudioMp3Fr = selectedLang === "fr" && Boolean(MP3_MAP_FR[chapterRef]);
+  const hasStudioMp3En = selectedLang === "en" && (chapterRef.includes("Jean 8") || chapterRef.includes("John 8"));
+
+  const audioSrc = selectedLang === "fr"
+    ? (MP3_MAP_FR[chapterRef] || "/audio_jean8_36_fr.mp3")
+    : selectedLang === "en"
+    ? "/audio_jean8_36_en.mp3"
+    : "";
 
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
-      setIsPlaying(false);
-      setCurrentTime(0);
-      setWasInterrupted(false);
     }
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setWasInterrupted(false);
   }, [chapterRef, selectedLang]);
 
-  const handleTogglePlay = () => {
-    if (!audioRef.current) return;
+  // Special presentation for Fon & Goun mother tongues
+  if (selectedLang === "fon" || selectedLang === "goun") {
+    return (
+      <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-[#101c38] to-slate-900 border border-amber-500/30 shadow-xl space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-400/30 text-amber-400 shrink-0">
+              <Headphones className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-bold text-white">
+                  Audio en {langName} • {chapterRef}
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                  ⏳ Enregistrement en préparation
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-300 mt-1">
+                L'enregistrement vocal officiel en {langName} est en cours de production (Alliance Biblique / EEDSC). Vous pouvez méditer le texte intégral ci-dessous.
+              </p>
+            </div>
+          </div>
 
+          {onSelectLang && (
+            <button
+              onClick={() => onSelectLang("fr")}
+              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500/20 to-amber-600/20 hover:from-amber-500/30 hover:to-amber-600/30 text-amber-300 hover:text-amber-200 text-xs font-bold flex items-center gap-2 border border-amber-400/30 transition shrink-0 self-start sm:self-auto"
+            >
+              <Volume2 className="w-3.5 h-3.5" />
+              Écouter en Français 🇫🇷
+            </button>
+          )}
+        </div>
+
+        <div className="text-[10px] text-slate-400 italic pt-1 border-t border-slate-800">
+          💡 Note pastorale : Le texte biblique complet en {langName} est entièrement lisible ci-dessous.
+        </div>
+      </div>
+    );
+  }
+
+  const handleTogglePlay = () => {
     if (isPlaying) {
-      audioRef.current.pause();
+      if (audioRef.current) audioRef.current.pause();
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
       setIsPlaying(false);
       setWasInterrupted(true);
-    } else {
+      return;
+    }
+
+    // If English without dedicated MP3, use Web Speech synthesis
+    if (selectedLang === "en" && !hasStudioMp3En) {
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(`Reading of ${chapterRef} in English. Please follow the verses below.`);
+        u.lang = "en-US";
+        u.rate = 0.92;
+        u.onend = () => setIsPlaying(false);
+        u.onerror = () => setIsPlaying(false);
+        window.speechSynthesis.speak(u);
+        setIsPlaying(true);
+        setWasInterrupted(false);
+      }
+      return;
+    }
+
+    // HTML5 Audio playback for French or English John 8
+    if (audioRef.current) {
       audioRef.current.play()
         .then(() => {
           setIsPlaying(true);
@@ -56,10 +133,12 @@ export default function AudioPlayerBar({ chapterRef, selectedLang, langName }: A
         })
         .catch((err) => {
           console.log("Audio play error:", err);
-          // Fallback speech
           if ("speechSynthesis" in window) {
-            const u = new SpeechSynthesisUtterance(`Lecture de ${chapterRef} en ${langName}`);
+            const u = new SpeechSynthesisUtterance(`Lecture de ${chapterRef} en français`);
             u.lang = "fr-FR";
+            u.rate = 0.92;
+            u.onend = () => setIsPlaying(false);
+            u.onerror = () => setIsPlaying(false);
             window.speechSynthesis.speak(u);
             setIsPlaying(true);
             setWasInterrupted(false);
@@ -121,11 +200,8 @@ export default function AudioPlayerBar({ chapterRef, selectedLang, langName }: A
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // State distinction:
-  // 1. "playing" -> Glowing emerald / gold
-  // 2. "interrupted/cut" -> Warm amber / warning orange with resumption pill
-  // 3. "ready" -> Night blue
   const isCutOrPaused = !isPlaying && currentTime > 0 && currentTime < duration;
+  const isStudioAvailable = hasStudioMp3Fr || hasStudioMp3En;
 
   return (
     <div
@@ -138,15 +214,17 @@ export default function AudioPlayerBar({ chapterRef, selectedLang, langName }: A
       }`}
     >
       {/* Hidden real HTML5 audio engine */}
-      <audio
-        ref={audioRef}
-        src={audioSrc}
-        onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={handleLoadedMetadata}
-        onEnded={handleEnded}
-      />
+      {audioSrc && (
+        <audio
+          ref={audioRef}
+          src={audioSrc}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onEnded={handleEnded}
+        />
+      )}
 
-      {/* Dynamic Status Pill when audio is cut / paused or playing */}
+      {/* Dynamic Status Pill when audio is cut / paused */}
       {isCutOrPaused && (
         <div className="p-2.5 rounded-xl bg-amber-500/20 border border-amber-400/50 flex items-center justify-between text-xs text-amber-200 animate-fadeIn">
           <div className="flex items-center gap-2">
@@ -187,16 +265,16 @@ export default function AudioPlayerBar({ chapterRef, selectedLang, langName }: A
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-white block">
-                Audio Studio HD • {chapterRef}
+                {isStudioAvailable ? "Audio Studio HD" : "Audio / Synthèse Vocale"} • {chapterRef}
               </span>
               {isPlaying && (
                 <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 animate-pulse">
-                  ● En direct
+                  ● En lecture
                 </span>
               )}
             </div>
             <span className="text-[11px] text-amber-300">
-              Voix : <strong>{langName}</strong>
+              Voix : <strong>{langName}</strong> {isStudioAvailable ? "(Enregistrement Studio)" : "(Lecture audio)"}
             </span>
           </div>
         </div>
@@ -286,7 +364,7 @@ export default function AudioPlayerBar({ chapterRef, selectedLang, langName }: A
           }`}
         >
           {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
-          <span>{isPlaying ? "Pause" : isCutOrPaused ? "Reprendre la Voix HD ▶" : "Écouter la Voix HD"}</span>
+          <span>{isPlaying ? "Pause" : isCutOrPaused ? "Reprendre l'écoute ▶" : "Écouter l'Audio"}</span>
         </button>
 
         <div className="flex items-center gap-2">
@@ -298,23 +376,18 @@ export default function AudioPlayerBar({ chapterRef, selectedLang, langName }: A
             {playbackSpeed}x
           </button>
 
-          <a
-            href={audioSrc}
-            download={`${chapterRef}_EEDSC.mp3`}
-            className="p-1.5 text-slate-400 hover:text-amber-400 transition"
-            title="Télécharger l'audio MP3 pour écouter hors-ligne"
-          >
-            <Download className="w-3.5 h-3.5" />
-          </a>
+          {audioSrc && (
+            <a
+              href={audioSrc}
+              download={`${chapterRef}_EEDSC.mp3`}
+              className="p-1.5 text-slate-400 hover:text-amber-400 transition"
+              title="Télécharger l'audio MP3 pour écouter hors-ligne"
+            >
+              <Download className="w-3.5 h-3.5" />
+            </a>
+          )}
         </div>
       </div>
-
-      {/* Pastoral note for Fongbe and Goun */}
-      {(selectedLang === "fon" || selectedLang === "goun") && (
-        <div className="text-[10px] text-amber-300/90 italic text-center pt-1 border-t border-slate-800/60">
-          Enregistrement officiel de l'Alliance Biblique du Bénin (dédié aux papas, mamans et fidèles).
-        </div>
-      )}
     </div>
   );
 }

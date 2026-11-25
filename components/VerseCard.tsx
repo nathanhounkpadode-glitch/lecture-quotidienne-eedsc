@@ -16,6 +16,7 @@ export default function VerseCard({ theme, verseOfDay }: VerseCardProps) {
   const [lang, setLang] = useState<SupportedLang>("fr");
   const [copied, setCopied] = useState<boolean>(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
+  const [audioNotice, setAudioNotice] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Match the specific verse for EVERY language (FR, EN, FON, GOUN)
@@ -69,6 +70,14 @@ export default function VerseCard({ theme, verseOfDay }: VerseCardProps) {
       if (audioRef.current) audioRef.current.pause();
       if ("speechSynthesis" in window) window.speechSynthesis.cancel();
       setIsPlayingAudio(false);
+      return;
+    }
+
+    if (lang === "fon" || lang === "goun") {
+      setAudioNotice(
+        `L'enregistrement audio du verset en ${currentVerse.langLabel} est en cours de préparation par l'église. Vous pouvez écouter la version Française ou Anglaise en changeant d'onglet en haut.`
+      );
+      setTimeout(() => setAudioNotice(null), 7000);
       return;
     }
 
@@ -130,7 +139,9 @@ export default function VerseCard({ theme, verseOfDay }: VerseCardProps) {
               key={b.key}
               onClick={() => {
                 if (audioRef.current) audioRef.current.pause();
+                if ("speechSynthesis" in window) window.speechSynthesis.cancel();
                 setIsPlayingAudio(false);
+                setAudioNotice(null);
                 setLang(b.key);
               }}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition ${
@@ -163,6 +174,23 @@ export default function VerseCard({ theme, verseOfDay }: VerseCardProps) {
         </div>
       </div>
 
+      {/* Audio Notice Banner for Fon & Goun */}
+      {audioNotice && (
+        <div className="relative z-10 p-3.5 rounded-2xl bg-amber-500/20 border border-amber-400/40 text-amber-200 text-xs flex items-center justify-between gap-3 animate-fadeIn shadow-lg">
+          <div className="flex items-center gap-2">
+            <Volume2 className="w-4 h-4 text-amber-300 shrink-0" />
+            <span>{audioNotice}</span>
+          </div>
+          <button
+            onClick={() => setAudioNotice(null)}
+            className="text-amber-300 hover:text-white font-bold px-2 py-0.5 rounded text-sm transition"
+            title="Fermer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Actions Bar */}
       <div className="relative z-10 pt-4 border-t border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         
@@ -172,11 +200,23 @@ export default function VerseCard({ theme, verseOfDay }: VerseCardProps) {
           className={`px-5 py-3 rounded-2xl text-xs font-extrabold flex items-center gap-2.5 transition active:scale-95 shadow-xl ${
             isPlayingAudio
               ? "bg-amber-400 text-slate-950 animate-pulse ring-4 ring-amber-400/30"
+              : (lang === "fon" || lang === "goun")
+              ? "bg-slate-900/90 hover:bg-slate-800 text-amber-300 border border-amber-400/30"
               : "bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950"
           }`}
         >
-          {isPlayingAudio ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
-          <span>{isPlayingAudio ? "Lecture vocale en cours..." : `Écouter le Verset (${currentVerse.langLabel}) 🎧`}</span>
+          {isPlayingAudio ? (
+            <Pause className="w-4 h-4 fill-current" />
+          ) : (
+            <Play className="w-4 h-4 fill-current" />
+          )}
+          <span>
+            {isPlayingAudio
+              ? "Lecture vocale en cours..."
+              : (lang === "fon" || lang === "goun")
+              ? `Audio ${currentVerse.langLabel} (Bientôt disponible)`
+              : `Écouter le Verset (${currentVerse.langLabel}) 🎧`}
+          </span>
         </button>
 
         <div className="flex items-center gap-3">
