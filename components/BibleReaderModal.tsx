@@ -28,7 +28,7 @@ export default function BibleReaderModal({
   const [selectedLang, setSelectedLang] = useState<SupportedLang>("fr");
   const [fontSize, setFontSize] = useState<number>(18);
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
-  const [dynamicChapter, setDynamicChapter] = useState<{ fr: any[]; en: any[] } | null>(null);
+  const [dynamicChapter, setDynamicChapter] = useState<{ fr: any[]; en: any[]; fon?: any[]; goun?: any[] } | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
   const currentPassage = passagesList[passageIndex] || passagesList[0];
@@ -37,10 +37,6 @@ export default function BibleReaderModal({
 
   useEffect(() => {
     if (!isOpen || !currentPassage) return;
-    if (MULTILANG_BIBLE[currentPassage.reference]) {
-      setDynamicChapter(null);
-      return;
-    }
     setLoading(true);
     fetch(`/api/bible/chapter?ref=${encodeURIComponent(currentPassage.reference)}`)
       .then((res) => (res.ok ? res.json() : null))
@@ -60,9 +56,21 @@ export default function BibleReaderModal({
   // Find chapter in data
   const chapterData = MULTILANG_BIBLE[currentPassage.reference] || MULTILANG_BIBLE["Genèse 1"];
   const currentTranslation = chapterData.translations[selectedLang] || chapterData.translations.fr;
-  const displayedVerses = dynamicChapter
-    ? (selectedLang === "en" && dynamicChapter.en.length > 0 ? dynamicChapter.en : dynamicChapter.fr)
-    : currentTranslation.verses;
+  const displayedVerses = (() => {
+    if (dynamicChapter) {
+      if (selectedLang === "en" && dynamicChapter.en && dynamicChapter.en.length > 0) {
+        return dynamicChapter.en;
+      }
+      if (selectedLang === "fon" && dynamicChapter.fon && dynamicChapter.fon.length > 0) {
+        return dynamicChapter.fon;
+      }
+      if (selectedLang === "goun" && dynamicChapter.goun && dynamicChapter.goun.length > 0) {
+        return dynamicChapter.goun;
+      }
+      return dynamicChapter.fr;
+    }
+    return currentTranslation.verses;
+  })();
 
   const handleToggleAudio = () => {
     if ("speechSynthesis" in window) {

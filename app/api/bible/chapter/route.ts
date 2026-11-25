@@ -76,6 +76,7 @@ const BOOK_MAP: Record<string, { lsg: string; kjv: string }> = {
 
 let lsgCache: any = null;
 let kjvCache: any = null;
+let fonCache: any = null;
 
 function loadData() {
   if (!lsgCache) {
@@ -88,6 +89,12 @@ function loadData() {
     const kjvPath = path.join(process.cwd(), "data", "bible_source", "kjv.json");
     if (fs.existsSync(kjvPath)) {
       kjvCache = JSON.parse(fs.readFileSync(kjvPath, "utf-8"));
+    }
+  }
+  if (!fonCache) {
+    const fonPath = path.join(process.cwd(), "data", "bible_source", "fon.json");
+    if (fs.existsSync(fonPath)) {
+      fonCache = JSON.parse(fs.readFileSync(fonPath, "utf-8"));
     }
   }
 }
@@ -119,6 +126,7 @@ export async function GET(req: NextRequest) {
 
     const lsgBookData = lsgCache?.books?.[mapping.lsg]?.[String(chapterNum)] || {};
     const kjvBookData = kjvCache?.[mapping.kjv]?.[String(chapterNum)] || {};
+    const fonBookData = fonCache?.books?.[mapping.lsg]?.[String(chapterNum)] || {};
 
     const frVerses = Object.entries(lsgBookData).map(([num, text]) => ({
       num: parseInt(num, 10),
@@ -130,12 +138,19 @@ export async function GET(req: NextRequest) {
       text: String(text).trim()
     })).sort((a, b) => a.num - b.num);
 
+    const fonVerses = Object.entries(fonBookData).map(([num, text]) => ({
+      num: parseInt(num, 10),
+      text: String(text).trim()
+    })).sort((a, b) => a.num - b.num);
+
     return NextResponse.json({
       reference: `${book} ${chapterNum}`,
       book,
       chapter: chapterNum,
       fr: frVerses,
-      en: enVerses
+      en: enVerses,
+      fon: fonVerses.length > 0 ? fonVerses : frVerses,
+      goun: fonVerses.length > 0 ? fonVerses : frVerses
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
