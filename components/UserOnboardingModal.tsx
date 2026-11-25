@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sparkles, Heart, BookOpen, ChevronRight, Check, User, X, Film } from "lucide-react";
+import { Sparkles, Heart, BookOpen, ChevronRight, Check, User, X } from "lucide-react";
 
 export interface UserProfile {
   firstName: string;
@@ -14,7 +14,6 @@ interface UserOnboardingModalProps {
   initialProfile?: UserProfile | null;
   onSaveProfile: (profile: UserProfile, suggestedTab?: string) => void;
   onClose?: () => void;
-  onOpenVideoDemo?: () => void;
   canCloseWithoutSaving?: boolean;
 }
 
@@ -23,7 +22,6 @@ export default function UserOnboardingModal({
   initialProfile,
   onSaveProfile,
   onClose,
-  onOpenVideoDemo,
   canCloseWithoutSaving = false,
 }: UserOnboardingModalProps) {
   const [firstName, setFirstName] = useState(initialProfile?.firstName || "");
@@ -204,22 +202,6 @@ export default function UserOnboardingModal({
                 >
                   Effacer ce profil & changer d'utilisateur
                 </button>
-              )}
-
-              {onOpenVideoDemo && (
-                <div className="pt-1 text-center">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (onClose) onClose();
-                      onOpenVideoDemo();
-                    }}
-                    className="inline-flex items-center gap-1.5 text-xs text-amber-300 hover:text-amber-200 underline underline-offset-2 transition cursor-pointer"
-                  >
-                    <Film className="w-3.5 h-3.5" />
-                    <span>Besoin d'aide ? Voir la démo vidéo de connexion</span>
-                  </button>
-                </div>
               )}
 
               <p className="text-[10px] text-slate-500 text-center">

@@ -8,11 +8,10 @@ import PrayerWall from "@/components/PrayerWall";
 import BibleReaderModal from "@/components/BibleReaderModal";
 import KidsBible from "@/components/KidsBible";
 import UserOnboardingModal, { UserProfile } from "@/components/UserOnboardingModal";
-import DemoVideoModal from "@/components/DemoVideoModal";
 import UserFeedbackModal from "@/components/UserFeedbackModal";
 import AnnualCalendarModal from "@/components/AnnualCalendarModal";
 import { TODAY_PORTIONS_DATA, READING_PLANS, ReadingMode, BIBLE_BOOKS_SUMMARY, getDayOfYear, formatDateFrench, getDayPortions } from "@/data/readingPlans";
-import { CheckCircle2, Clock, BookOpen, Flame, Trophy, Scroll, Compass, ChevronRight, Layers, Sparkles, RotateCcw, Calendar, Edit3, Star, MessageSquarePlus, ArrowLeft, ArrowRight, WifiOff, History, BookMarked, Check, Film } from "lucide-react";
+import { CheckCircle2, Clock, BookOpen, Flame, Trophy, Scroll, Compass, ChevronRight, Layers, Sparkles, RotateCcw, Calendar, Edit3, Star, MessageSquarePlus, ArrowLeft, ArrowRight, WifiOff, History, BookMarked, Check } from "lucide-react";
 
 function formatPassagesSummary(passages: { book: string; chapter: number }[]) {
   if (!passages || passages.length === 0) return "";
@@ -44,7 +43,6 @@ export default function Home() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isClient, setIsClient] = useState<boolean>(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState<boolean>(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState<boolean>(false);
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState<boolean>(false);
   const [isOnline, setIsOnline] = useState<boolean>(true);
@@ -345,7 +343,6 @@ export default function Home() {
         streakCount={streakCount}
         userName={userProfile?.firstName ? userProfile.firstName : null}
         onOpenProfile={() => setIsOnboardingOpen(true)}
-        onOpenVideoDemo={() => setIsVideoModalOpen(true)}
         canGoBack={canGoBack}
         canGoForward={canGoForward}
         onGoBack={handleGoBack}
@@ -491,31 +488,20 @@ export default function Home() {
                         </button>
                       </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                    <div className="flex items-center gap-2 mt-2">
                       <h1 suppressHydrationWarning className="text-2xl md:text-3xl font-extrabold text-white font-serif">
                         {userProfile?.firstName
                           ? `Bonjour ${userProfile.firstName} ! 🙏`
                           : "Bienvenue sur Lecture Quotidienne EEDSC ! 🙏"}
                       </h1>
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => setIsOnboardingOpen(true)}
-                          className="p-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-400 hover:text-amber-300 border border-slate-700/80 transition shadow cursor-pointer"
-                          title={userProfile?.firstName ? "Modifier mon profil" : "Se connecter avec votre prénom"}
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setIsVideoModalOpen(true)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-300 text-xs font-semibold transition cursor-pointer shadow-sm active:scale-95"
-                          title="Voir le tutoriel vidéo pour se connecter"
-                        >
-                          <Film className="w-3.5 h-3.5 text-amber-400" />
-                          <span>Démo Vidéo</span>
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsOnboardingOpen(true)}
+                        className="p-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-400 hover:text-amber-300 border border-slate-700/80 transition shadow cursor-pointer"
+                        title={userProfile?.firstName ? "Modifier mon profil" : "Se connecter avec votre prénom"}
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                     <p suppressHydrationWarning className="text-xs text-slate-400 mt-0.5">
                       {currentPortions.dateStr} • <span className="text-amber-300 font-medium">{currentPortions.theme}</span>
@@ -970,17 +956,7 @@ export default function Home() {
           initialProfile={userProfile}
           onSaveProfile={handleSaveProfile}
           onClose={() => setIsOnboardingOpen(false)}
-          onOpenVideoDemo={() => setIsVideoModalOpen(true)}
           canCloseWithoutSaving={true}
-        />
-      )}
-
-      {/* Demo Video & Connection Guide Modal */}
-      {isVideoModalOpen && (
-        <DemoVideoModal
-          isOpen={isVideoModalOpen}
-          onClose={() => setIsVideoModalOpen(false)}
-          onStartOnboarding={() => setIsOnboardingOpen(true)}
         />
       )}
 
