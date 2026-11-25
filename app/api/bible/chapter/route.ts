@@ -107,7 +107,11 @@ export async function GET(req: NextRequest) {
     }
 
     const chapterNum = parseInt(chapterStr, 10) || 1;
-    const mapping = BOOK_MAP[book] || Object.entries(BOOK_MAP).find(([k]) => book.startsWith(k))?.[1];
+    const cleanBook = book.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+    const mapping =
+      BOOK_MAP[book] ||
+      Object.entries(BOOK_MAP).find(([k]) => k.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() === cleanBook)?.[1] ||
+      Object.entries(BOOK_MAP).find(([k]) => cleanBook.startsWith(k.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim()))?.[1];
 
     if (!mapping) {
       return NextResponse.json({ error: "Livre non reconnu" }, { status: 404 });
