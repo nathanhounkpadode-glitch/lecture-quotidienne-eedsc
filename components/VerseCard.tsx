@@ -47,7 +47,7 @@ export default function VerseCard({ theme, verseOfDay }: VerseCardProps) {
   };
 
   const handleShareWhatsApp = () => {
-    const message = `✨ *Verset du Jour • EEDSC* ✨\n\n« ${currentVerse.text} »\n\n📖 *${currentVerse.reference}*\n_Thème : ${theme}_\n\n🎧 Écoute et médite sur : https://lecture-eedsc.org`;
+    const message = `✨ *Verset du Jour • EEDSC* ✨\n\n« ${currentVerse.text} »\n\n📖 *${currentVerse.reference}*\n_Thème : ${theme}_\n\n🎧 Écoute et médite sur : https://lecture-quotidienne-eedsc.vercel.app`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank");
   };
 

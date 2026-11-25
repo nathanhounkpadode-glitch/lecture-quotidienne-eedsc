@@ -162,7 +162,7 @@ export default function Navbar({
           </div>
 
           <a
-            href="https://wa.me/?text=Rejoins-moi+sur+la+plateforme+Lecture+Quotidienne+EEDSC+pour+m%C3%A9diter+la+Parole+de+Dieu+%21"
+            href="https://wa.me/?text=Rejoins-moi+sur+la+plateforme+Lecture+Quotidienne+EEDSC+pour+m%C3%A9diter+la+Parole+de+Dieu+%21%0A%0A%F0%9F%91%89+https%3A%2F%2Flecture-quotidienne-eedsc.vercel.app"
             target="_blank"
             rel="noopener noreferrer"
             className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow-md transition"

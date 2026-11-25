@@ -253,7 +253,7 @@ export default function BibleReaderModal({
 
             <button
               onClick={() => {
-                const text = `Je médite actuellement ${currentPassage.reference} (${currentTranslation.langName}) sur Lecture Quotidienne EEDSC !`;
+                const text = `Je médite actuellement ${currentPassage.reference} (${currentTranslation.langName}) sur Lecture Quotidienne EEDSC !\n\n👉 https://lecture-quotidienne-eedsc.vercel.app`;
                 window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
               }}
               className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-amber-300 transition"
