@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Flame, BookOpen, Heart, Sparkles, Share2, User, ArrowLeft, ArrowRight } from "lucide-react";
+import { Flame, BookOpen, Heart, Sparkles, Share2, User, ArrowLeft, ArrowRight, PlayCircle } from "lucide-react";
 
 interface NavbarProps {
   activeTab: string;
@@ -9,6 +9,7 @@ interface NavbarProps {
   streakCount: number;
   userName?: string | null;
   onOpenProfile?: () => void;
+  onOpenVideoDemo?: () => void;
   canGoBack?: boolean;
   canGoForward?: boolean;
   onGoBack?: () => void;
@@ -21,6 +22,7 @@ export default function Navbar({
   streakCount,
   userName = null,
   onOpenProfile,
+  onOpenVideoDemo,
   canGoBack = false,
   canGoForward = false,
   onGoBack,
@@ -138,6 +140,19 @@ export default function Navbar({
 
         {/* Flamme de Streak & Profil */}
         <div className="flex items-center gap-2 sm:gap-3">
+
+          {/* Bouton Démo Vidéo Tutoriel */}
+          {onOpenVideoDemo && (
+            <button
+              type="button"
+              onClick={onOpenVideoDemo}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold bg-amber-500/10 hover:bg-amber-500/25 text-amber-300 border border-amber-400/40 transition shadow-sm active:scale-95 cursor-pointer"
+              title="Voir la vidéo démo : Comment se connecter"
+            >
+              <PlayCircle className="w-3.5 h-3.5 text-amber-400 fill-amber-400/30" />
+              <span className="hidden sm:inline">Démo Vidéo</span>
+            </button>
+          )}
 
           {/* User Profile / Connexion Pill */}
           <button
