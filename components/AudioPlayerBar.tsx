@@ -31,20 +31,27 @@ export default function AudioPlayerBar({
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [wasInterrupted, setWasInterrupted] = useState<boolean>(false);
+  const [remoteAudioUrl, setRemoteAudioUrl] = useState<string | null>(null);
+  const [isAudioLoading, setIsAudioLoading] = useState<boolean>(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Determine available audio source based on language and chapter
+  // Determine available audio source based on language, chapter, or remote BibleBrain streaming
   const hasStudioMp3Fr = selectedLang === "fr" && Boolean(MP3_MAP_FR[chapterRef]);
   const hasStudioMp3En = selectedLang === "en" && (chapterRef.includes("Jean 8") || chapterRef.includes("John 8"));
 
-  const audioSrc = selectedLang === "fr"
-    ? (MP3_MAP_FR[chapterRef] || "/audio_jean8_36_fr.mp3")
-    : selectedLang === "en"
-    ? "/audio_jean8_36_en.mp3"
-    : "";
+  const audioSrc = remoteAudioUrl || (
+    selectedLang === "fr"
+      ? (MP3_MAP_FR[chapterRef] || "/audio_jean8_36_fr.mp3")
+      : selectedLang === "en"
+      ? "/audio_jean8_36_en.mp3"
+      : ""
+  );
 
   useEffect(() => {
+    let isCancelled = false;
+    setRemoteAudioUrl(null);
+
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
@@ -55,10 +62,34 @@ export default function AudioPlayerBar({
     setIsPlaying(false);
     setCurrentTime(0);
     setWasInterrupted(false);
+
+    // Asynchronously check /api/bible/audio for available studio streams (BibleBrain / local)
+    const match = chapterRef.match(/^(.+?)\s+(\d+)$/);
+    if (match) {
+      const book = match[1];
+      const chapter = match[2];
+      setIsAudioLoading(true);
+
+      fetch(`/api/bible/audio?lang=${selectedLang}&book=${encodeURIComponent(book)}&chapter=${chapter}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (!isCancelled && data.success && data.audioUrl) {
+            setRemoteAudioUrl(data.audioUrl);
+          }
+        })
+        .catch((err) => console.log("Audio fetch error:", err))
+        .finally(() => {
+          if (!isCancelled) setIsAudioLoading(false);
+        });
+    }
+
+    return () => {
+      isCancelled = true;
+    };
   }, [chapterRef, selectedLang]);
 
-  // Special presentation for Fon & Goun mother tongues
-  if (selectedLang === "fon" || selectedLang === "goun") {
+  // Special presentation for Fon & Goun mother tongues when no audio stream is yet available
+  if ((selectedLang === "fon" || selectedLang === "goun") && !remoteAudioUrl) {
     return (
       <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-[#101c38] to-slate-900 border border-amber-500/30 shadow-xl space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -72,11 +103,11 @@ export default function AudioPlayerBar({
                   Audio en {langName} • {chapterRef}
                 </span>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
-                  ⏳ Enregistrement en préparation
+                  {isAudioLoading ? "⏳ Recherche du flux audio..." : "⏳ Enregistrement en préparation"}
                 </span>
               </div>
               <p className="text-[11px] text-slate-300 mt-1">
-                L'enregistrement vocal officiel en {langName} est en cours de production (Alliance Biblique / EEDSC). Vous pouvez méditer le texte intégral ci-dessous.
+                L'enregistrement vocal officiel en {langName} est en cours de déploiement (Bible Brain / Alliance Biblique). Vous pouvez méditer le texte intégral ci-dessous.
               </p>
             </div>
           </div>
@@ -201,7 +232,7 @@ export default function AudioPlayerBar({
   };
 
   const isCutOrPaused = !isPlaying && currentTime > 0 && currentTime < duration;
-  const isStudioAvailable = hasStudioMp3Fr || hasStudioMp3En;
+  const isStudioAvailable = Boolean(remoteAudioUrl) || hasStudioMp3Fr || hasStudioMp3En;
 
   return (
     <div
